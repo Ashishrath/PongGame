@@ -1,7 +1,8 @@
 ﻿  main.cpp
 E:\cpp\vc\PongGame\PongGame\main.cpp(1,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-E:\cpp\vc\PongGame\PongGame\main.cpp(40,35): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-E:\cpp\vc\PongGame\PongGame\main.cpp(46,35): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-E:\cpp\vc\PongGame\PongGame\main.cpp(47,36): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-E:\cpp\vc\PongGame\PongGame\main.cpp(63,28): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+E:\cpp\vc\PongGame\PongGame\main.cpp(27,35): warning C4305: 'argument': truncation from 'double' to 'float'
+E:\cpp\vc\PongGame\PongGame\main.cpp(55,35): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+E:\cpp\vc\PongGame\PongGame\main.cpp(61,35): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+E:\cpp\vc\PongGame\PongGame\main.cpp(62,36): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+E:\cpp\vc\PongGame\PongGame\main.cpp(154,29): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
   PongGame.vcxproj -> E:\cpp\vc\PongGame\x64\Debug\PongGame.exe
