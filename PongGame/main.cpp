@@ -34,12 +34,14 @@ int rightPlayerScore = 0;
 std::string leftPlayerName = "";
 std::string rightPlayerName = "";
 bool isRightWin = false;
+bool isVsCPU = false;
 
 int main() {
 	InitWindow(800, 600, "Pong");	// Creating the window (between creating and closing we write all the code).
 	SetWindowState(FLAG_VSYNC_HINT);// Set the refresh rate equal to the refresh rate of current screen
 
 	bool startGame = false;
+	bool vsSelectionScreen = false;
 	bool finishScreen = false;
 	bool player1Input = true;
 
@@ -64,6 +66,13 @@ int main() {
 	rightPaddle.height = 100;
 	rightPaddle.speed = 500;
 
+	Paddle cpu{};
+	cpu.x = 20;
+	cpu.y = GetScreenHeight() / 2;
+	cpu.width = 10;
+	cpu.height = 100;
+	cpu.speed = 500;
+
 	//Paddle powerBlock;
 	//powerBlock.x = GetScreenWidth() / 2;
 	//powerBlock.y = 100;
@@ -71,24 +80,58 @@ int main() {
 	//powerBlock.height = 120;
 
 	const char* winnerText = nullptr;
+	int selectorYAxis = 297;
 
 	while (!WindowShouldClose()) {	// To keep the window open
 		if (!startGame) {
+			if (!vsSelectionScreen) {
+				ClearBackground(RAYWHITE);
+				DrawText("Pong Game", 55 , 60, 130, BLACK);
+				int key = GetKeyPressed();
+				
+				if (key == KEY_DOWN) {
+					if(selectorYAxis == 347)
+						selectorYAxis -= 100;
+					selectorYAxis += 50;
+				}
 
-			if (!finishScreen) {
+				if (key == KEY_UP) {
+					if (selectorYAxis == 297)
+						selectorYAxis += 100;
+					selectorYAxis -= 50;
+				}
+				
+				DrawText(">", GetScreenWidth() / 2 - 100, selectorYAxis, 30, RED);
+				DrawText("1 VS 1", GetScreenWidth() / 2 - 70, 300, 25, BLACK);
+				DrawText("1 VS CPU", GetScreenWidth() / 2 - 70, 350, 25, BLACK);
+				//vsSelectionScreen = true;
+
+				if (key == KEY_ENTER) {
+					vsSelectionScreen = true;
+					if (selectorYAxis == 347) {
+						isVsCPU = true;
+					}
+				}
+			}
+
+			else if (vsSelectionScreen && !finishScreen) {
+				ClearBackground(RAYWHITE);
 				// Draw input fields
-				DrawRectangle(50, 125, 200, 30, LIGHTGRAY);
-				DrawRectangleLines(50, 125, 200, 30, DARKGRAY);
-				DrawText("Enter Player 1 Name (Left):", 50, 100, 20, WHITE);
-				DrawText(leftPlayerName.c_str(), 60, 130, 20, BLACK);
+				if (!isVsCPU) {
+					DrawRectangle(50, 125, 200, 30, LIGHTGRAY);
+					DrawRectangleLines(50, 125, 200, 30, DARKGRAY);
+					DrawText("Enter Player 1 Name (Left):", 50, 100, 20, BLACK);
+					DrawText(leftPlayerName.c_str(), 60, 130, 20, BLACK);
+				}
 				DrawRectangle(50, 225, 200, 30, LIGHTGRAY);
 				DrawRectangleLines(50, 225, 200, 30, DARKGRAY);
-				DrawText("Enter Player 2 Name (Right):", 50, 200, 20, WHITE);
+				DrawText("Enter Player 2 Name (Right):", 50, 200, 20, BLACK);
 				DrawText(rightPlayerName.c_str(), 60, 230, 20, BLACK);
 
+				
 				// Check for player name input
 				if (IsKeyPressed(KEY_ENTER)) {
-					if (player1Input) {
+					if (!isVsCPU && (player1Input && leftPlayerName.length() > 0)) {
 						player1Input = false;
 					}
 					else {
@@ -96,7 +139,7 @@ int main() {
 					}
 				}
 				if (IsKeyPressed(KEY_BACKSPACE)) {
-					if (player1Input) {
+					if (!isVsCPU || player1Input) {
 						if (leftPlayerName.size() > 0) {
 							leftPlayerName.pop_back();
 						}
@@ -110,7 +153,7 @@ int main() {
 				else {
 					int key = GetKeyPressed();
 					if (key > 0 && key < 256) {
-						if (player1Input) {
+						if (!isVsCPU && player1Input) {
 							leftPlayerName += static_cast<char>(key);
 						}
 						else {
@@ -156,18 +199,29 @@ int main() {
 			}
 
 			// Move paddle using keyboard
-			// For left paddle
-			if (IsKeyDown(KEY_W)) {
-				if (leftPaddle.y - (leftPaddle.height / 2) > 0) {
-					leftPaddle.y -= leftPaddle.speed * GetFrameTime();
+			if (isVsCPU) {
+				if (cpu.y - (cpu.height / 2) > 0 && cpu.y > ball.y) {
+					cpu.y -= cpu.speed * GetFrameTime();
+				}
+				if (cpu.y + (cpu.height / 2) < GetScreenHeight() && cpu.y <= ball.y) {
+					cpu.y += cpu.speed * GetFrameTime();
 				}
 			}
-			if (IsKeyDown(KEY_S)) {
-				if (leftPaddle.y + (leftPaddle.height / 2) < GetScreenHeight()) {
-					leftPaddle.y += leftPaddle.speed * GetFrameTime();
+			else {
+				// For left paddle
+				if (IsKeyDown(KEY_W)) {
+					if (leftPaddle.y - (leftPaddle.height / 2) > 0) {
+						leftPaddle.y -= leftPaddle.speed * GetFrameTime();
+					}
 				}
+				if (IsKeyDown(KEY_S)) {
+					if (leftPaddle.y + (leftPaddle.height / 2) < GetScreenHeight()) {
+						leftPaddle.y += leftPaddle.speed * GetFrameTime();
+					}
 
+				}
 			}
+			
 
 			// For right paddle
 			if (IsKeyDown(KEY_UP)) {
@@ -184,12 +238,24 @@ int main() {
 			// DrawText(TextFormat("Ball X: %d", ball.speedX), 10, 20, 20, BLACK);
 
 			// Check collision between ball and paddle
-			if (CheckCollisionCircleRec(Vector2{ ball.x, ball.y }
-				, ball.radius
-				, leftPaddle.GetRect())) {
-				if (ball.speedX < 0) {
-					ball.speedX *= -1.1f;
-					ball.speedY = (ball.y - leftPaddle.y) / (leftPaddle.height / 2) * ball.speedX;
+			if (isVsCPU) {
+				if (CheckCollisionCircleRec(Vector2{ ball.x, ball.y }
+					, ball.radius
+					, cpu.GetRect())) {
+					if (ball.speedX < 0) {
+						ball.speedX *= -1.1f;
+						ball.speedY = (ball.y - cpu.y) / (cpu.height / 2) * ball.speedX;
+					}
+				}
+			}
+			else {
+				if (CheckCollisionCircleRec(Vector2{ ball.x, ball.y }
+					, ball.radius
+					, leftPaddle.GetRect())) {
+					if (ball.speedX < 0) {
+						ball.speedX *= -1.1f;
+						ball.speedY = (ball.y - leftPaddle.y) / (leftPaddle.height / 2) * ball.speedX;
+					}
 				}
 			}
 			if (CheckCollisionCircleRec(Vector2{ ball.x, ball.y }
@@ -219,7 +285,7 @@ int main() {
 					isRightWin = false;
 					std::cout << "inside left" << std::endl;
 				}*/
-				winnerText = leftPlayerName.c_str();
+				winnerText = (!isVsCPU) ? leftPlayerName.c_str() : "CPU";
 				isRightWin = false;
 			}
 
@@ -249,8 +315,14 @@ int main() {
 
 			// To draw a rectangle in the center of the screen
 			// DrawRectangle(GetScreenWidth() - 20 - 10, GetScreenHeight() / 2 - 50, 10, 100, BLACK);
-			leftPaddle.Draw();
+			if (isVsCPU) {
+				cpu.Draw();
+			}
+			else {
+				leftPaddle.Draw();
+			}
 			rightPaddle.Draw();
+			
 
 			//powerBlock.Draw();
 
